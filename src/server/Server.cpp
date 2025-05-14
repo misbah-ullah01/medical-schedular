@@ -19,7 +19,7 @@
 #endif
 #include <thread>    // Added for multi-threading
 #include <vector>    // Added for managing threads
-#include <algorithm> // For std::find_if, std::remove_if
+#include <algorithm> // For find_if, remove_if
 #include <mutex>     // Added for thread safety for shared resources (appointments, users)
 
 #include "Server.h"
@@ -27,18 +27,20 @@
 #include "User.h"
 #include "Appointment.h"
 
+using namespace std;
+
 // Helper to get error message
-std::string get_socket_error()
+string get_socket_error()
 {
 #ifdef _WIN32
-    return std::to_string(WSAGetLastError());
+    return to_string(WSAGetLastError());
 #else
     return strerror(errno);
 #endif
 }
 
-std::mutex g_appointments_mutex; // Global mutex for appointments vector
-std::mutex g_users_mutex;        // Global mutex for users map
+mutex g_appointments_mutex; // Global mutex for appointments vector
+mutex g_users_mutex;        // Global mutex for users map
 
 // --- Server Member Function Definitions ---
 
@@ -51,7 +53,7 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
     int wsaResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaResult != 0)
     {
-        std::cerr << "WSAStartup failed: " << wsaResult << std::endl;
+        cerr << "WSAStartup failed: " << wsaResult << endl;
         exit(EXIT_FAILURE);
     }
 #endif
@@ -60,19 +62,19 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 #ifdef _WIN32
     if (serverSocket == INVALID_SOCKET)
     {
-        std::cerr << "Socket creation failed: " << get_socket_error() << std::endl;
+        cerr << "Socket creation failed: " << get_socket_error() << endl;
         WSACleanup();
         exit(EXIT_FAILURE);
     }
 #else
     if (serverSocket < 0)
     {
-        std::cerr << "Socket creation failed: " << get_socket_error() << std::endl;
+        cerr << "Socket creation failed: " << get_socket_error() << endl;
         exit(EXIT_FAILURE);
     }
 #endif
 
-    std::memset(&serverAddr, 0, sizeof(serverAddr)); // More portable
+    memset(&serverAddr, 0, sizeof(serverAddr)); // More portable
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(port);
@@ -80,7 +82,7 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 #ifdef _WIN32
     if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
     {
-        std::cerr << "Bind failed: " << get_socket_error() << std::endl;
+        cerr << "Bind failed: " << get_socket_error() << endl;
         closesocket(serverSocket);
         WSACleanup();
         exit(EXIT_FAILURE);
@@ -88,7 +90,7 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 #else
     if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
     {
-        std::cerr << "Bind failed: " << get_socket_error() << std::endl;
+        cerr << "Bind failed: " << get_socket_error() << endl;
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
@@ -97,7 +99,7 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 #ifdef _WIN32
     if (listen(serverSocket, 3) == SOCKET_ERROR)
     {
-        std::cerr << "Listen failed: " << get_socket_error() << std::endl;
+        cerr << "Listen failed: " << get_socket_error() << endl;
         closesocket(serverSocket);
         WSACleanup();
         exit(EXIT_FAILURE);
@@ -105,12 +107,12 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 #else
     if (listen(serverSocket, 3) < 0)
     {
-        std::cerr << "Listen failed: " << get_socket_error() << std::endl;
+        cerr << "Listen failed: " << get_socket_error() << endl;
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
 #endif
-    std::cout << "Server initialized on port " << port << std::endl;
+    cout << "Server initialized on port " << port << endl;
 
     // Load persisted users
     loadUsers();
@@ -130,20 +132,20 @@ Server::~Server()
         close(serverSocket);
     }
 #endif
-    std::cout << "Server shut down." << std::endl;
+    cout << "Server shut down." << endl;
 }
 
-void Server::sendResponse(int clientSocket, const std::string &response)
+void Server::sendResponse(int clientSocket, const string &response)
 {
     Protocol protocol;
     protocol.sendMessage(clientSocket, response);
-    // std::cout << "Sent to client: " << response << std::endl; // Optional: Can be noisy
+    // cout << "Sent to client: " << response << endl; // Optional: Can be noisy
 }
 
 void Server::start()
 {
-    std::cout << "[INFO] Server listening on port " << port << "..." << std::endl;
-    std::vector<std::thread> client_threads; // To store client threads
+    cout << "[INFO] Server listening on port " << port << "..." << endl;
+    vector<thread> client_threads; // To store client threads
 
     while (true)
     {
@@ -158,19 +160,19 @@ void Server::start()
 #ifdef _WIN32
         if (clientSocket == INVALID_SOCKET)
         {
-            std::cerr << "[ERROR] Accept failed: " << get_socket_error() << std::endl;
+            cerr << "[ERROR] Accept failed: " << get_socket_error() << endl;
             continue;
         }
 #else
         if (clientSocket < 0)
         {
-            std::cerr << "[ERROR] Accept failed: " << get_socket_error() << std::endl;
+            cerr << "[ERROR] Accept failed: " << get_socket_error() << endl;
             continue;
         }
 #endif
         char clientIpStr[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &clientAddr.sin_addr, clientIpStr, INET_ADDRSTRLEN);
-        std::cout << "[INFO] Client connected from " << clientIpStr << ":" << ntohs(clientAddr.sin_port) << std::endl;
+        cout << "[INFO] Client connected from " << clientIpStr << ":" << ntohs(clientAddr.sin_port) << endl;
 
         // Create a new thread to handle the client
         client_threads.emplace_back(&Server::processClient, this, clientSocket);
@@ -181,9 +183,9 @@ void Server::start()
         // or manage them in a more sophisticated way in a real application.
         // For now, let's detach to allow the main loop to continue accepting.
         // Clean up finished threads to prevent vector from growing indefinitely
-        client_threads.erase(std::remove_if(client_threads.begin(), client_threads.end(),
-                                            [](const std::thread &t)
-                                            { return !t.joinable(); }),
+        client_threads.erase(remove_if(client_threads.begin(), client_threads.end(),
+                                       [](const thread &t)
+                                       { return !t.joinable(); }),
                              client_threads.end());
         // Detach the latest thread
         if (!client_threads.empty() && client_threads.back().joinable())
@@ -212,38 +214,38 @@ void Server::processClient(int clientSocket)
         {
             if (lenRecv == 0)
             {
-                std::cout << "[INFO] Client gracefully disconnected while waiting for message length." << std::endl;
+                cout << "[INFO] Client gracefully disconnected while waiting for message length." << endl;
             }
             else
             {
-                std::cerr << "[ERROR] Failed to receive message length from client. Error: " << get_socket_error() << std::endl;
+                cerr << "[ERROR] Failed to receive message length from client. Error: " << get_socket_error() << endl;
             }
             break; // Exit loop on error or graceful disconnect
         }
 
         if (lenRecv != sizeof(uint32_t))
         {
-            std::cerr << "[ERROR] Failed to receive the full message length. Expected " << sizeof(uint32_t) << " bytes, got " << lenRecv << " bytes." << std::endl;
+            cerr << "[ERROR] Failed to receive the full message length. Expected " << sizeof(uint32_t) << " bytes, got " << lenRecv << " bytes." << endl;
             break; // Exit loop on partial length receive
         }
 
         // Convert message length from network byte order to host byte order
         uint32_t host_messageLength = ntohl(net_messageLength);
 
-        // std::cout << "[DEBUG Server] Received net_messageLength: " << net_messageLength
-        //           << ", converted to host_messageLength: " << host_messageLength << std::endl; // Removed
+        // cout << "[DEBUG Server] Received net_messageLength: " << net_messageLength
+        //           << ", converted to host_messageLength: " << host_messageLength << endl; // Removed
 
         // Basic validation for message length to prevent excessive memory allocation
         // Max length 4KB, adjust as needed. Also, 0 length is invalid.
         if (host_messageLength == 0 || host_messageLength > 4096)
         {
-            std::cerr << "[ERROR] Invalid message length received: " << host_messageLength << ". Must be > 0 and <= 4096." << std::endl;
+            cerr << "[ERROR] Invalid message length received: " << host_messageLength << ". Must be > 0 and <= 4096." << endl;
             // It might be good to send an error response to client before closing, if protocol allows
             // sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Invalid message length");
             break;
         }
 
-        std::vector<char> buffer(host_messageLength); // Allocate buffer for message body only
+        vector<char> buffer(host_messageLength); // Allocate buffer for message body only
 
         int messageBodyBytesToReceive = static_cast<int>(host_messageLength);
         int bytesReceived = recv(clientSocket, buffer.data(), messageBodyBytesToReceive, MSG_WAITALL);
@@ -252,48 +254,48 @@ void Server::processClient(int clientSocket)
         {
             if (bytesReceived == 0)
             {
-                std::cout << "[INFO] Client gracefully disconnected after sending length, while waiting for message body." << std::endl;
+                cout << "[INFO] Client gracefully disconnected after sending length, while waiting for message body." << endl;
             }
             else
             {
-                std::cerr << "[ERROR] Failed to receive message body from client. Error: " << get_socket_error() << std::endl;
+                cerr << "[ERROR] Failed to receive message body from client. Error: " << get_socket_error() << endl;
             }
             break; // Exit loop
         }
 
         if (bytesReceived != messageBodyBytesToReceive)
         {
-            std::cerr << "[ERROR] Failed to receive the full message body. Expected " << messageBodyBytesToReceive << " bytes, got " << bytesReceived << " bytes." << std::endl;
+            cerr << "[ERROR] Failed to receive the full message body. Expected " << messageBodyBytesToReceive << " bytes, got " << bytesReceived << " bytes." << endl;
             break; // Exit loop on partial message body receive
         }
 
-        std::string clientRequest(buffer.data(), bytesReceived); // Construct string with received bytes
-        // std::cout << "Received from client (" << bytesReceived << " bytes): " << clientRequest << std::endl; // Replaced below
+        string clientRequest(buffer.data(), bytesReceived); // Construct string with received bytes
+        // cout << "Received from client (" << bytesReceived << " bytes): " << clientRequest << endl; // Replaced below
 
-        std::string command;
-        std::vector<std::string> payloads;
-        std::stringstream ss(clientRequest);
-        std::string segment;
+        string command;
+        vector<string> payloads;
+        stringstream ss(clientRequest);
+        string segment;
 
-        if (std::getline(ss, command, '|'))
+        if (getline(ss, command, '|'))
         {
-            std::cout << "[REQUEST] Received Command: " << command;
-            std::string payload_str;
-            while (std::getline(ss, segment, '|'))
+            cout << "[REQUEST] Received Command: " << command;
+            string payload_str;
+            while (getline(ss, segment, '|'))
             {
                 payloads.push_back(segment);
                 payload_str += segment + (ss.peek() == EOF ? "" : "|");
             }
             if (!payload_str.empty())
             {
-                std::cout << " | Payloads: " << payload_str;
+                cout << " | Payloads: " << payload_str;
             }
-            std::cout << std::endl;
+            cout << endl;
         }
         else
         {
             command = clientRequest; // If no delimiter, the whole request is the command
-            std::cout << "[REQUEST] Received Command (no delimiter): " << command << std::endl;
+            cout << "[REQUEST] Received Command (no delimiter): " << command << endl;
         }
 
         // Admin commands (simple check, ideally admin role should be verified)
@@ -326,7 +328,7 @@ void Server::processClient(int clientSocket)
         // TODO: Implement a LOGOUT command to allow graceful client-initiated disconnect
         // if (command == Protocol::LOGOUT_COMMAND) { // Assuming LOGOUT_COMMAND is defined
         //     sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Logout successful");
-        //     std::cout << "[INFO] Client requested logout." << std::endl;
+        //     cout << "[INFO] Client requested logout." << endl;
         //     break;
         // }
 
@@ -338,7 +340,7 @@ void Server::processClient(int clientSocket)
             }
             else
             {
-                std::cerr << "[ERROR] Invalid SIGN_IN format from client. Request: " << clientRequest << std::endl;
+                cerr << "[ERROR] Invalid SIGN_IN format from client. Request: " << clientRequest << endl;
                 sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Invalid SIGN_IN format");
             }
         }
@@ -351,7 +353,7 @@ void Server::processClient(int clientSocket)
             }
             else
             {
-                std::cerr << "[ERROR] Invalid SIGN_UP format from client. Request: " << clientRequest << std::endl;
+                cerr << "[ERROR] Invalid SIGN_UP format from client. Request: " << clientRequest << endl;
                 sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Invalid SIGN_UP format");
             }
         }
@@ -359,18 +361,18 @@ void Server::processClient(int clientSocket)
         {
             if (payloads.size() >= 4)
             {
-                std::string patientId = payloads[0];
-                std::string doctorId = payloads[1];
-                std::string dateTimeString = payloads[2];
-                std::string details = payloads[3];
+                string patientId = payloads[0];
+                string doctorId = payloads[1];
+                string dateTimeString = payloads[2];
+                string details = payloads[3];
 
-                std::string appointmentId = "APP" + std::to_string(appointments.size() + 1);
+                string appointmentId = "APP" + to_string(appointments.size() + 1);
                 Appointment newAppointment(appointmentId, patientId, doctorId, dateTimeString, details);
                 handleAppointmentRequest(clientSocket, newAppointment);
             }
             else
             {
-                std::cerr << "[ERROR] Invalid REQUEST_APPOINTMENT format from client. Expected PATIENT_ID|DOCTOR_ID|DATE_TIME|DETAILS. Request: " << clientRequest << std::endl;
+                cerr << "[ERROR] Invalid REQUEST_APPOINTMENT format from client. Expected PATIENT_ID|DOCTOR_ID|DATE_TIME|DETAILS. Request: " << clientRequest << endl;
                 sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Invalid REQUEST_APPOINTMENT format. Expected: PATIENT_ID|DOCTOR_ID|DATE_TIME|DETAILS");
             }
         }
@@ -380,7 +382,7 @@ void Server::processClient(int clientSocket)
         }
         else
         {
-            std::cerr << "[WARNING] Unknown command from client: " << command << std::endl;
+            cerr << "[WARNING] Unknown command from client: " << command << endl;
             sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Unknown command");
         }
     } // End of while(true) loop for handling multiple requests
@@ -390,14 +392,14 @@ void Server::processClient(int clientSocket)
 #else
     close(clientSocket);
 #endif
-    std::cout << "[INFO] Client socket closed." << std::endl;
+    cout << "[INFO] Client socket closed." << endl;
 }
 
 // --- Handler Function Definitions ---
-void Server::handleSignIn(int clientSocket, const std::string &username, const std::string &password)
+void Server::handleSignIn(int clientSocket, const string &username, const string &password)
 {
-    std::cout << "[AUTH] Processing Sign-In for user: '" << username << "'" << std::endl;
-    std::lock_guard<std::mutex> lock(g_users_mutex); // Lock users map
+    cout << "[AUTH] Processing Sign-In for user: '" << username << "'" << endl;
+    lock_guard<mutex> lock(g_users_mutex); // Lock users map
     auto it = users.find(username);
     if (it != users.end())
     {
@@ -405,67 +407,67 @@ void Server::handleSignIn(int clientSocket, const std::string &username, const s
         if (it->second.getPassword() == password)
         {
             sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Sign-in successful");
-            std::cout << "[AUTH] User '" << username << "' signed in successfully." << std::endl;
+            cout << "[AUTH] User '" << username << "' signed in successfully." << endl;
         }
         else
         {
             sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Invalid credentials");
-            std::cout << "[AUTH] Sign-in failed for user '" << username << "': Incorrect password." << std::endl;
+            cout << "[AUTH] Sign-in failed for user '" << username << "': Incorrect password." << endl;
         }
     }
     else
     {
         sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|User not found");
-        std::cout << "[AUTH] Sign-in failed: User '" << username << "' not found." << std::endl;
+        cout << "[AUTH] Sign-in failed: User '" << username << "' not found." << endl;
     }
 }
 
 void Server::handleSignUp(int clientSocket, const User &newUser)
 {
-    std::cout << "[AUTH] Processing Sign-Up for user: '" << newUser.getUsername() << "'" << std::endl;
-    std::lock_guard<std::mutex> lock(g_users_mutex); // Lock users map
+    cout << "[AUTH] Processing Sign-Up for user: '" << newUser.getUsername() << "'" << endl;
+    lock_guard<mutex> lock(g_users_mutex); // Lock users map
     if (this->users.count(newUser.getUsername()))
     {
         sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Username already taken");
-        std::cout << "[AUTH] Sign-Up failed for user '" << newUser.getUsername() << "': Username already taken." << std::endl;
+        cout << "[AUTH] Sign-Up failed for user '" << newUser.getUsername() << "': Username already taken." << endl;
     }
     else
     {
         this->users[newUser.getUsername()] = newUser;
         saveUser(newUser);
         sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Sign-up successful");
-        std::cout << "[AUTH] User '" << newUser.getUsername() << "' registered successfully." << std::endl;
+        cout << "[AUTH] User '" << newUser.getUsername() << "' registered successfully." << endl;
     }
 }
 
 void Server::handleAppointmentRequest(int clientSocket, const Appointment &newAppointment)
 {
-    std::cout << "[APPOINTMENT] Processing Request for Patient: '" << newAppointment.getPatientName()
-              << "', Doctor: '" << newAppointment.getDoctorName()
-              << "', DateTime: '" << newAppointment.getAppointmentTime().toString() // Use toString()
-              << "', Details: '" << newAppointment.getDetails() << "'" << std::endl;
+    cout << "[APPOINTMENT] Processing Request for Patient: '" << newAppointment.getPatientName()
+         << "', Doctor: '" << newAppointment.getDoctorName()
+         << "', DateTime: '" << newAppointment.getAppointmentTime().toString() // Use toString()
+         << "', Details: '" << newAppointment.getDetails() << "'" << endl;
 
-    std::lock_guard<std::mutex> lock(g_appointments_mutex); // Lock appointments vector
+    lock_guard<mutex> lock(g_appointments_mutex); // Lock appointments vector
     appointments.push_back(newAppointment);
 
-    std::cout << "[APPOINTMENT] Appointment ID '" << newAppointment.getid() << "' created and stored for patient '" << newAppointment.getPatientName() << "'." << std::endl;
+    cout << "[APPOINTMENT] Appointment ID '" << newAppointment.getid() << "' created and stored for patient '" << newAppointment.getPatientName() << "'." << endl;
 
     sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Appointment request received and registered with ID: " + newAppointment.getid());
 }
 
-void Server::approveAppointment(int clientSocket, const std::string &appointmentId)
+void Server::approveAppointment(int clientSocket, const string &appointmentId)
 {
-    std::cout << "[APPOINTMENT] Server-initiated Approval for Appointment ID: '" << appointmentId << "'" << std::endl;
+    cout << "[APPOINTMENT] Server-initiated Approval for Appointment ID: '" << appointmentId << "'" << endl;
     Admin adminCtrl; // Create an Admin controller instance
     bool found = false;
-    std::lock_guard<std::mutex> lock(g_appointments_mutex);
+    lock_guard<mutex> lock(g_appointments_mutex);
     for (auto &app : appointments)
     {
         if (app.getid() == appointmentId)
         {
             adminCtrl.approveAppointment(app);
             sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Appointment " + appointmentId + " approved by server.");
-            std::cout << "[APPOINTMENT] Appointment ID '" << appointmentId << "' approved by server." << std::endl;
+            cout << "[APPOINTMENT] Appointment ID '" << appointmentId << "' approved by server." << endl;
             found = true;
             // TODO: Persist appointment changes if needed
             break;
@@ -474,23 +476,23 @@ void Server::approveAppointment(int clientSocket, const std::string &appointment
     if (!found)
     {
         sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Appointment ID " + appointmentId + " not found for server approval.");
-        std::cout << "[APPOINTMENT] Server approval failed: Appointment ID '" << appointmentId << "' not found." << std::endl;
+        cout << "[APPOINTMENT] Server approval failed: Appointment ID '" << appointmentId << "' not found." << endl;
     }
 }
 
-void Server::rejectAppointment(int clientSocket, const std::string &appointmentId)
+void Server::rejectAppointment(int clientSocket, const string &appointmentId)
 {
-    std::cout << "[APPOINTMENT] Server-initiated Rejection for Appointment ID: '" << appointmentId << "'" << std::endl;
+    cout << "[APPOINTMENT] Server-initiated Rejection for Appointment ID: '" << appointmentId << "'" << endl;
     Admin adminCtrl;
     bool found = false;
-    std::lock_guard<std::mutex> lock(g_appointments_mutex);
+    lock_guard<mutex> lock(g_appointments_mutex);
     for (auto &app : appointments)
     {
         if (app.getid() == appointmentId)
         {
             adminCtrl.rejectAppointment(app);
             sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Appointment " + appointmentId + " rejected by server.");
-            std::cout << "[APPOINTMENT] Appointment ID '" << appointmentId << "' rejected by server." << std::endl;
+            cout << "[APPOINTMENT] Appointment ID '" << appointmentId << "' rejected by server." << endl;
             found = true;
             // TODO: Persist appointment changes if needed
             break;
@@ -499,17 +501,17 @@ void Server::rejectAppointment(int clientSocket, const std::string &appointmentI
     if (!found)
     {
         sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Appointment ID " + appointmentId + " not found for server rejection.");
-        std::cout << "[APPOINTMENT] Server rejection failed: Appointment ID '" << appointmentId << "' not found." << std::endl;
+        cout << "[APPOINTMENT] Server rejection failed: Appointment ID '" << appointmentId << "' not found." << endl;
     }
 }
 
 // New handler functions for admin actions via client
 void Server::handleListPendingAppointments(int clientSocket)
 {
-    std::cout << "[ADMIN_CMD] Listing pending appointments for client." << std::endl;
-    std::string response_payload;
+    cout << "[ADMIN_CMD] Listing pending appointments for client." << endl;
+    string response_payload;
     bool first = true;
-    std::lock_guard<std::mutex> lock(g_appointments_mutex);
+    lock_guard<mutex> lock(g_appointments_mutex);
     for (const auto &app : appointments)
     {
         if (app.getStatus().getStatus() == "pending")
@@ -530,12 +532,12 @@ void Server::handleListPendingAppointments(int clientSocket)
     }
 }
 
-void Server::handleAdminApproveAppointment(int clientSocket, const std::string &appointmentId)
+void Server::handleAdminApproveAppointment(int clientSocket, const string &appointmentId)
 {
-    std::cout << "[ADMIN_CMD] Client request to approve appointment ID: " << appointmentId << std::endl;
+    cout << "[ADMIN_CMD] Client request to approve appointment ID: " << appointmentId << endl;
     Admin adminCtrl;
     bool found = false;
-    std::lock_guard<std::mutex> lock(g_appointments_mutex);
+    lock_guard<mutex> lock(g_appointments_mutex);
     for (auto &app : appointments)
     {
         if (app.getid() == appointmentId)
@@ -543,7 +545,7 @@ void Server::handleAdminApproveAppointment(int clientSocket, const std::string &
             adminCtrl.approveAppointment(app);
             // TODO: Persist changes
             sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Appointment " + appointmentId + " approved.");
-            std::cout << "[ADMIN_CMD] Appointment " << appointmentId << " approved by client command." << std::endl;
+            cout << "[ADMIN_CMD] Appointment " << appointmentId << " approved by client command." << endl;
             found = true;
             break;
         }
@@ -551,16 +553,16 @@ void Server::handleAdminApproveAppointment(int clientSocket, const std::string &
     if (!found)
     {
         sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Appointment ID " + appointmentId + " not found for approval.");
-        std::cout << "[ADMIN_CMD] Approval failed for " << appointmentId << ": Not found." << std::endl;
+        cout << "[ADMIN_CMD] Approval failed for " << appointmentId << ": Not found." << endl;
     }
 }
 
-void Server::handleAdminRejectAppointment(int clientSocket, const std::string &appointmentId)
+void Server::handleAdminRejectAppointment(int clientSocket, const string &appointmentId)
 {
-    std::cout << "[ADMIN_CMD] Client request to reject appointment ID: " << appointmentId << std::endl;
+    cout << "[ADMIN_CMD] Client request to reject appointment ID: " << appointmentId << endl;
     Admin adminCtrl;
     bool found = false;
-    std::lock_guard<std::mutex> lock(g_appointments_mutex);
+    lock_guard<mutex> lock(g_appointments_mutex);
     for (auto &app : appointments)
     {
         if (app.getid() == appointmentId)
@@ -568,7 +570,7 @@ void Server::handleAdminRejectAppointment(int clientSocket, const std::string &a
             adminCtrl.rejectAppointment(app);
             // TODO: Persist changes
             sendResponse(clientSocket, Protocol::SUCCESS_MESSAGE + "|Appointment " + appointmentId + " rejected.");
-            std::cout << "[ADMIN_CMD] Appointment " << appointmentId << " rejected by client command." << std::endl;
+            cout << "[ADMIN_CMD] Appointment " << appointmentId << " rejected by client command." << endl;
             found = true;
             break;
         }
@@ -576,16 +578,16 @@ void Server::handleAdminRejectAppointment(int clientSocket, const std::string &a
     if (!found)
     {
         sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Appointment ID " + appointmentId + " not found for rejection.");
-        std::cout << "[ADMIN_CMD] Rejection failed for " << appointmentId << ": Not found." << std::endl;
+        cout << "[ADMIN_CMD] Rejection failed for " << appointmentId << ": Not found." << endl;
     }
 }
 
 void Server::handleGetApprovedAppointments(int clientSocket)
 {
-    std::cout << "[VIEWER_CMD] Request for approved appointments." << std::endl;
-    std::string data;
+    cout << "[VIEWER_CMD] Request for approved appointments." << endl;
+    string data;
     bool first = true;
-    std::lock_guard<std::mutex> lock(g_appointments_mutex);
+    lock_guard<mutex> lock(g_appointments_mutex);
     for (const auto &app : appointments)
     {
         // Show all appointments regardless of status
@@ -614,19 +616,19 @@ void Server::handleGetApprovedAppointments(int clientSocket)
 // Load existing users from file
 void Server::loadUsers()
 {
-    std::ifstream inFile("users.txt");
+    ifstream inFile("users.txt");
     if (!inFile)
     {
-        std::cout << "[INFO] No users.txt file found. Starting with an empty user database." << std::endl;
+        cout << "[INFO] No users.txt file found. Starting with an empty user database." << endl;
         return;
     }
-    std::string line;
+    string line;
     int count = 0;
-    while (std::getline(inFile, line))
+    while (getline(inFile, line))
     {
-        std::istringstream iss(line);
-        std::string username, password;
-        if (std::getline(iss, username, '|') && std::getline(iss, password))
+        istringstream iss(line);
+        string username, password;
+        if (getline(iss, username, '|') && getline(iss, password))
         {
             users[username] = User(username, password);
             count++;
@@ -634,23 +636,23 @@ void Server::loadUsers()
     }
     if (count > 0)
     {
-        std::cout << "[INFO] Loaded " << count << " users from users.txt." << std::endl;
+        cout << "[INFO] Loaded " << count << " users from users.txt." << endl;
     }
     else
     {
-        std::cout << "[INFO] users.txt was empty or contained no valid user entries." << std::endl;
+        cout << "[INFO] users.txt was empty or contained no valid user entries." << endl;
     }
 }
 
 // Append a new user to the file
 void Server::saveUser(const User &newUser)
 {
-    std::ofstream outFile("users.txt", std::ios::app);
+    ofstream outFile("users.txt", ios::app);
     if (!outFile)
     {
-        std::cerr << "[ERROR] Failed to open users.txt for writing. User '" << newUser.getUsername() << "' not saved." << std::endl;
+        cerr << "[ERROR] Failed to open users.txt for writing. User '" << newUser.getUsername() << "' not saved." << endl;
         return;
     }
-    outFile << newUser.getUsername() << "|" << newUser.getPassword() << std::endl;
-    std::cout << "[INFO] User '" << newUser.getUsername() << "' saved to users.txt." << std::endl;
+    outFile << newUser.getUsername() << "|" << newUser.getPassword() << endl;
+    cout << "[INFO] User '" << newUser.getUsername() << "' saved to users.txt." << endl;
 }

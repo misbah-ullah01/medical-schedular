@@ -21,6 +21,8 @@
 #include "Appointment.h"
 #include "Admin.h" // Make sure Admin.h is included
 
+using namespace std;
+
 class Server
 {
 public:
@@ -30,23 +32,23 @@ public:
 
     void start();
     void processClient(int clientSocket);
-    void handleSignIn(int clientSocket, const std::string &username, const std::string &password);
+    void handleSignIn(int clientSocket, const string &username, const string &password);
     void handleSignUp(int clientSocket, const User &newUser);
     void handleAppointmentRequest(int clientSocket, const Appointment &appointment);
-    void approveAppointment(int clientSocket, const std::string &appointmentId);
-    void rejectAppointment(int clientSocket, const std::string &appointmentId);
+    void approveAppointment(int clientSocket, const string &appointmentId);
+    void rejectAppointment(int clientSocket, const string &appointmentId);
 
     // New handlers for client-driven admin actions and viewer
     void handleListPendingAppointments(int clientSocket);
-    void handleAdminApproveAppointment(int clientSocket, const std::string &appointmentId);
-    void handleAdminRejectAppointment(int clientSocket, const std::string &appointmentId);
+    void handleAdminApproveAppointment(int clientSocket, const string &appointmentId);
+    void handleAdminRejectAppointment(int clientSocket, const string &appointmentId);
     void handleGetApprovedAppointments(int clientSocket);
 
     // Expose appointments for admin CLI
-    const std::vector<Appointment> &getAppointments() const { return appointments; }
+    const vector<Appointment> &getAppointments() const { return appointments; }
 
 private:
-    void sendResponse(int clientSocket, const std::string &response); // Added declaration
+    void sendResponse(int clientSocket, const string &response); // Added declaration
 
     // Persistence helpers for users
     void loadUsers();
@@ -56,8 +58,8 @@ private:
     int serverSocket;
     struct sockaddr_in serverAddr;
 
-    std::map<std::string, User> users;     // Registered users
-    std::vector<Appointment> appointments; // Stored appointments
+    map<string, User> users;          // Registered users
+    vector<Appointment> appointments; // Stored appointments
 };
 
 #endif // SERVER_H

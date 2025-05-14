@@ -1,17 +1,19 @@
 // filepath: d:\GIKI (CS)\Semester 2\CS112\Semester Project\Project 1\medical-scheduler\src\server\Appointment.cpp
 #include "Appointment.h"
 #include <cstdio> // For sscanf. Consider <sstream> for more robust parsing.
-#include <string> // Required for std::string
+#include <string> // Required for string
 
-// Constructor: Appointment(const std::string& patName, const std::string& docName, const timezone& appTime, const std::string& appID)
-Appointment::Appointment(const std::string &patName, const std::string &docName, const timezone &appTime, const std::string &appID)
+using namespace std;
+
+// Constructor: Appointment(const string& patName, const string& docName, const timezone& appTime, const string& appID)
+Appointment::Appointment(const string &patName, const string &docName, const timezone &appTime, const string &appID)
     : id(appID), patientName(patName), doctorName(docName), appointmentTime(appTime), status(), details("")
 {
     // status() will call AppointmentStatus default constructor ("pending")
 }
 
-// Constructor: Appointment(const std::string& appointmentId, const std::string& patientName, const std::string& doctorName, const std::string& dateTimeString, const std::string& appDetails)
-Appointment::Appointment(const std::string &appointmentId, const std::string &patName, const std::string &docName, const std::string &dateTimeString, const std::string &appDetails)
+// Constructor: Appointment(const string& appointmentId, const string& patientName, const string& doctorName, const string& dateTimeString, const string& appDetails)
+Appointment::Appointment(const string &appointmentId, const string &patName, const string &docName, const string &dateTimeString, const string &appDetails)
     : id(appointmentId), patientName(patName), doctorName(docName), details(appDetails), status()
 { // status() will call AppointmentStatus default constructor
     // Parse dateTimeString "YYYY-MM-DD HH:MM" into timezone struct
@@ -54,17 +56,17 @@ Appointment &Appointment::operator=(const Appointment &other)
 }
 
 // Getters
-std::string Appointment::getid() const
+string Appointment::getid() const
 {
     return id;
 }
 
-std::string Appointment::getPatientName() const
+string Appointment::getPatientName() const
 {
     return patientName;
 }
 
-std::string Appointment::getDoctorName() const
+string Appointment::getDoctorName() const
 {
     return doctorName;
 }
@@ -79,7 +81,7 @@ AppointmentStatus Appointment::getStatus() const
     return status;
 }
 
-std::string Appointment::getDetails() const
+string Appointment::getDetails() const
 {
     return details;
 }

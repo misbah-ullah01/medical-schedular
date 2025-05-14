@@ -24,17 +24,17 @@ struct Message
 class Protocol
 {
 public:
-    static const std::string SIGN_UP;
-    static const std::string SIGN_IN;
-    static const std::string REQUEST_APPOINTMENT;
-    static const std::string APPOINTMENT_APPROVAL;      // Added
-    static const std::string APPOINTMENT_REJECTION;     // Added
-    static const std::string LIST_PENDING_APPOINTMENTS; // New
-    static const std::string ADMIN_APPROVE_APPOINTMENT; // New
-    static const std::string ADMIN_REJECT_APPOINTMENT;  // New
-    static const std::string GET_APPROVED_APPOINTMENTS; // For viewer
-    static const std::string ERROR_MESSAGE;
-    static const std::string SUCCESS_MESSAGE;
+    static const string SIGN_UP;
+    static const string SIGN_IN;
+    static const string REQUEST_APPOINTMENT;
+    static const string APPOINTMENT_APPROVAL;      // Added
+    static const string APPOINTMENT_REJECTION;     // Added
+    static const string LIST_PENDING_APPOINTMENTS; // New
+    static const string ADMIN_APPROVE_APPOINTMENT; // New
+    static const string ADMIN_REJECT_APPOINTMENT;  // New
+    static const string GET_APPROVED_APPOINTMENTS; // For viewer
+    static const string ERROR_MESSAGE;
+    static const string SUCCESS_MESSAGE;
 
     void sendMessage(int socket, const string &message);
     string receiveMessage(int socket);

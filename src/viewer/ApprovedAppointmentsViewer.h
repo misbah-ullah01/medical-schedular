@@ -6,25 +6,27 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 // Struct to hold parsed appointment information
 struct ApprovedAppointmentInfo
 {
-    std::string id;
-    std::string patientName;
-    std::string doctorName;
-    std::string dateTime;
-    std::string details;
+    string id;
+    string patientName;
+    string doctorName;
+    string dateTime;
+    string details;
 };
 
 class ApprovedAppointmentsViewer
 {
 public:
-    ApprovedAppointmentsViewer(const std::string &serverIp, int port);
+    ApprovedAppointmentsViewer(const string &serverIp, int port);
     void fetchAndDisplayAppointments();
 
 private:
     NetworkClient networkClient;
-    std::vector<ApprovedAppointmentInfo> parseApprovedAppointments(const std::string &data);
+    vector<ApprovedAppointmentInfo> parseApprovedAppointments(const string &data);
 };
 
 #endif // APPROVED_APPOINTMENTS_VIEWER_H

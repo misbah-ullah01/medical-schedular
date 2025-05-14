@@ -56,11 +56,11 @@ public:
     }
 
     // New toString method
-    std::string toString() const
+    string toString() const
     {
         char buffer[20]; // "YYYY-MM-DD HH:MM"
         snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d", year, month, day, hour, minute);
-        return std::string(buffer);
+        return string(buffer);
     }
 };
 
@@ -119,19 +119,19 @@ public:
 class Appointment
 {
 protected:
-    std::string id; // Changed from int to std::string
-    std::string patientName;
-    std::string doctorName;
+    string id; // Changed from int to string
+    string patientName;
+    string doctorName;
     timezone appointmentTime;
     AppointmentStatus status; // Default constructor of AppointmentStatus sets to "pending"
-    std::string details;      // Added details member
+    string details;           // Added details member
 
 public:
     // Existing constructor - signature updated for id type
-    Appointment(const std::string &patName, const std::string &docName, const timezone &appTime, const std::string &appID);
+    Appointment(const string &patName, const string &docName, const timezone &appTime, const string &appID);
 
     // New constructor for server usage (dateTimeString to be parsed)
-    Appointment(const std::string &appointmentId, const std::string &patientName, const std::string &doctorName, const std::string &dateTimeString, const std::string &appDetails);
+    Appointment(const string &appointmentId, const string &patientName, const string &doctorName, const string &dateTimeString, const string &appDetails);
 
     // Default constructor (optional, but can be useful)
     Appointment();
@@ -142,13 +142,13 @@ public:
     Appointment &operator=(const Appointment &other);
 
     // Getters - id return type updated, new getter for details
-    std::string getid() const;
-    std::string getPatientName() const;
-    std::string getDoctorName() const;
+    string getid() const;
+    string getPatientName() const;
+    string getDoctorName() const;
     timezone getAppointmentTime() const; // Added getter
     AppointmentStatus getStatus() const; // Added getter
-    std::string getDetails() const;
-    std::string getId() const { return id; } // Added getter
+    string getDetails() const;
+    string getId() const { return id; } // Added getter
 
     // Setters (optional, add as needed)
     void setStatus(const AppointmentStatus &newStatus); // Example setter

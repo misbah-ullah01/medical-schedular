@@ -2,7 +2,7 @@
 #include <string>
 using namespace std;
 
-User::User(const std::string &username, const string &password)
+User::User(const string &username, const string &password)
     : username(username), password(password) {}
 
 string User::getUsername() const

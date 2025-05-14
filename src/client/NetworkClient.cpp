@@ -13,16 +13,16 @@
 
 using namespace std;
 
-// Set default server IP and port as std::string and int
+// Set default server IP and port as string and int
 const string DEFAULT_SERVER_IP = "127.0.0.1"; // Default to localhost
 const int DEFAULT_SERVER_PORT = 12345;        // Make sure this matches your server
 
 // Helper to get error message
 // Placed here to be available for NetworkClient methods
-std::string get_socket_error_client() // Renamed to avoid potential ODR violations if linked with server in some contexts, though unlikely for separate executables.
+string get_socket_error_client() // Renamed to avoid potential ODR violations if linked with server in some contexts, though unlikely for separate executables.
 {
 #ifdef _WIN32
-    return std::to_string(WSAGetLastError());
+    return to_string(WSAGetLastError());
 #else
     return strerror(errno); // errno is from <cerrno> or <errno.h>
 #endif
@@ -107,14 +107,14 @@ bool NetworkClient::sendRequest(const string &request)
 {
     int host_messageLength = static_cast<int>(request.length());
     // Log the length that will be sent and a preview of the request
-    // std::cout << "[DEBUG Client] Attempting to send request. Calculated host_messageLength: " << host_messageLength << std::endl;
+    // cout << "[DEBUG Client] Attempting to send request. Calculated host_messageLength: " << host_messageLength << endl;
     // if (!request.empty())
     // { // Add a small preview if not empty
-    //     std::cout << "[DEBUG Client] Request content preview (first 100 chars): " << request.substr(0, 100) << std::endl;
+    //     cout << "[DEBUG Client] Request content preview (first 100 chars): " << request.substr(0, 100) << endl;
     // }
     // else
     // {
-    //     std::cout << "[DEBUG Client] Request content is empty." << std::endl;
+    //     cout << "[DEBUG Client] Request content is empty." << endl;
     // }
 
     // Client-side check for message length (mirroring server's limit)
@@ -122,31 +122,31 @@ bool NetworkClient::sendRequest(const string &request)
     const int MAX_MESSAGE_LENGTH = 4096;
     if (host_messageLength <= 0 || host_messageLength > MAX_MESSAGE_LENGTH)
     {
-        std::cerr << "[ERROR Client] Message length (" << host_messageLength
-                  << ") is invalid or exceeds the maximum allowed length of "
-                  << MAX_MESSAGE_LENGTH << " bytes. Request not sent." << std::endl;
+        cerr << "[ERROR Client] Message length (" << host_messageLength
+             << ") is invalid or exceeds the maximum allowed length of "
+             << MAX_MESSAGE_LENGTH << " bytes. Request not sent." << endl;
         return false; // Prevent sending invalid/oversized message
     }
 
     // Convert message length to network byte order
     uint32_t net_messageLength = htonl(static_cast<uint32_t>(host_messageLength));
 
-    // std::cout << "[DEBUG Client] Sending message length (host: " << host_messageLength << ", net_uint32: " << net_messageLength << ")" << std::endl;
+    // cout << "[DEBUG Client] Sending message length (host: " << host_messageLength << ", net_uint32: " << net_messageLength << ")" << endl;
     if (send(socketFD, reinterpret_cast<const char *>(&net_messageLength), sizeof(uint32_t), 0) == SOCKET_ERROR)
     {
-        std::cerr << "Failed to send message length. Error: " << get_socket_error_client() << std::endl;
+        cerr << "Failed to send message length. Error: " << get_socket_error_client() << endl;
         return false;
     }
-    // std::cout << "[DEBUG Client] Message length sent successfully." << std::endl;
+    // cout << "[DEBUG Client] Message length sent successfully." << endl;
 
     // Send the actual message
-    // std::cout << "[DEBUG Client] Sending message body (" << host_messageLength << " bytes)..." << std::endl;
+    // cout << "[DEBUG Client] Sending message body (" << host_messageLength << " bytes)..." << endl;
     if (send(socketFD, request.c_str(), host_messageLength, 0) == SOCKET_ERROR)
     {
-        std::cerr << "Failed to send message body. Error: " << get_socket_error_client() << std::endl; // This is where 10053 was reported
+        cerr << "Failed to send message body. Error: " << get_socket_error_client() << endl; // This is where 10053 was reported
         return false;
     }
-    // std::cout << "[DEBUG Client] Message body sent successfully." << std::endl;
+    // cout << "[DEBUG Client] Message body sent successfully." << endl;
 
     return true;
 }
@@ -161,31 +161,31 @@ string NetworkClient::receiveResponse()
     {
         if (lenRecv == 0)
         {
-            std::cerr << "Server closed connection while waiting for response length." << std::endl;
+            cerr << "Server closed connection while waiting for response length." << endl;
         }
         else
         {
-            std::cerr << "Failed to receive response length. Error: " << get_socket_error_client() << std::endl;
+            cerr << "Failed to receive response length. Error: " << get_socket_error_client() << endl;
         }
         return ""; // Return empty string or throw an exception
     }
     if (lenRecv != sizeof(uint32_t))
     {
-        std::cerr << "Failed to receive the full response length. Expected " << sizeof(uint32_t) << " bytes, got " << lenRecv << " bytes." << std::endl;
+        cerr << "Failed to receive the full response length. Expected " << sizeof(uint32_t) << " bytes, got " << lenRecv << " bytes." << endl;
         return "";
     }
 
     uint32_t host_messageLength = ntohl(net_messageLength);
-    // std::cout << "[DEBUG Client] Received net_messageLength: " << net_messageLength
-    //           << ", converted to host_messageLength: " << host_messageLength << std::endl;
+    // cout << "[DEBUG Client] Received net_messageLength: " << net_messageLength
+    //           << ", converted to host_messageLength: " << host_messageLength << endl;
 
     if (host_messageLength == 0 || host_messageLength > 4096)
     { // Max length 4KB, adjust as needed
-        std::cerr << "Invalid response message length received: " << host_messageLength << ". Must be > 0 and <= 4096." << std::endl;
+        cerr << "Invalid response message length received: " << host_messageLength << ". Must be > 0 and <= 4096." << endl;
         return "";
     }
 
-    std::vector<char> buffer(host_messageLength);
+    vector<char> buffer(host_messageLength);
     int messageBodyBytesToReceive = static_cast<int>(host_messageLength);
     int bytesReceived = recv(socketFD, buffer.data(), messageBodyBytesToReceive, 0); // MSG_WAITALL might be too blocking for client if server sends partial
 
@@ -193,26 +193,26 @@ string NetworkClient::receiveResponse()
     {
         if (bytesReceived == 0)
         {
-            std::cerr << "Server closed connection after sending length, while waiting for response body." << std::endl;
+            cerr << "Server closed connection after sending length, while waiting for response body." << endl;
         }
         else
         {
-            std::cerr << "Failed to receive response body. Error: " << get_socket_error_client() << std::endl;
+            cerr << "Failed to receive response body. Error: " << get_socket_error_client() << endl;
         }
         return "";
     }
 
     if (bytesReceived != messageBodyBytesToReceive)
     {
-        std::cerr << "Failed to receive the full response body. Expected " << messageBodyBytesToReceive
-                  << " bytes, got " << bytesReceived << " bytes. Partial message: \""
-                  << std::string(buffer.data(), bytesReceived) << "\"" << std::endl;
+        cerr << "Failed to receive the full response body. Expected " << messageBodyBytesToReceive
+             << " bytes, got " << bytesReceived << " bytes. Partial message: \""
+             << string(buffer.data(), bytesReceived) << "\"" << endl;
         // Optionally, could try to process the partial message or loop to receive more,
         // but for now, treating as an error.
         return ""; // Or return the partial data if appropriate for the protocol
     }
 
-    return std::string(buffer.data(), bytesReceived);
+    return string(buffer.data(), bytesReceived);
 }
 
 bool NetworkClient::sendSignUpRequest(const string &username, const string &encryptedPassword)

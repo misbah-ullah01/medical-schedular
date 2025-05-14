@@ -69,7 +69,7 @@ void Protocol::sendMessage(int clientSocket, const string &message)
         return;
     }
     // Optional: Log what was sent, but be mindful of log spam for large messages
-    // std::cout << "[DEBUG Server] Sent length: " << messageLength << ", Sent message: " << message.substr(0, 100) << std::endl;
+    // cout << "[DEBUG Server] Sent length: " << messageLength << ", Sent message: " << message.substr(0, 100) << endl;
 }
 
 string Protocol::receiveMessage(int socket)
