@@ -17,8 +17,7 @@ public:
     Admin();
     void approveAppointment(Appointment &appointment);
     void rejectAppointment(Appointment &appointment);
-    void rejectAppointment(const string &appointmentId); // Changed from int to string
     vector<Appointment> viewPendingAppointments(const vector<Appointment> &appointments);
-    void viewAppointments();
+    // Removed rejectAppointment(const string&) and viewAppointments declarations
 };
 #endif // ADMIN_H

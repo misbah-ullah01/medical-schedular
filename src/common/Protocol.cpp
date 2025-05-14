@@ -106,22 +106,3 @@ string Protocol::createAppointmentMessage(const string &appointmentDetails)
 {
     return "APPOINTMENT|" + appointmentDetails;
 }
-
-string Protocol::parseUserMessage(const string &message, string &username, string &password)
-{
-    istringstream iss(message);
-    string type;
-    getline(iss, type, '|');
-    getline(iss, username, '|');
-    getline(iss, password);
-    return type;
-}
-
-string Protocol::parseAppointmentMessage(const string &message)
-{
-    istringstream iss(message);
-    string type, appointmentDetails;
-    getline(iss, type, '|');
-    getline(iss, appointmentDetails);
-    return appointmentDetails;
-}

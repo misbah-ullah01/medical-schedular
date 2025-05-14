@@ -21,18 +21,6 @@ void Admin::rejectAppointment(Appointment &appointment)
     cout << "Appointment rejected: " << appointment.getStatus().getStatus() << endl;
 }
 
-void Admin::rejectAppointment(const string &appointmentId)
-{
-    for (auto &x : appointments)
-    {
-        if (x.getId() == appointmentId)
-        {
-            rejectAppointment(x);
-            break;
-        }
-    }
-}
-
 vector<Appointment> Admin::viewPendingAppointments(const vector<Appointment> &appointments)
 {
     vector<Appointment> pendingAppointments;
@@ -46,12 +34,4 @@ vector<Appointment> Admin::viewPendingAppointments(const vector<Appointment> &ap
         }
     }
     return pendingAppointments;
-}
-
-void Admin::viewAppointments()
-{
-    for (const auto &appointment : appointments)
-    {
-        cout << "Appointment Id: " << appointment.getId() << ", Status: " << appointment.getStatus().getStatus() << endl;
-    }
 }

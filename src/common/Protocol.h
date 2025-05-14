@@ -40,8 +40,6 @@ public:
     string receiveMessage(int socket);
     string createUserMessage(const string &username, const string &password);
     string createAppointmentMessage(const string &appointmentDetails);
-    string parseUserMessage(const string &message, string &username, string &password);
-    string parseAppointmentMessage(const string &message);
 };
 
 #endif // PROTOCOL_H
