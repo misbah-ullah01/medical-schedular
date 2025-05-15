@@ -10,7 +10,7 @@
 
 using namespace std;
 
-// Handles TCP communication with the server for client operations
+// Handles TCP communication with the server for client operations (Windows only)
 class NetworkClient
 {
 public:

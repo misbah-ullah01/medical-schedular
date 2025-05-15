@@ -1,15 +1,12 @@
-// Implements protocol message formatting and socket communication
+// Implements protocol message formatting and socket communication (Windows only)
 #include "Protocol.h"
 #include <cstring>
 #include <sstream>
-#include <sys/types.h>
-#ifdef _WIN32
 #include <winsock2.h>
-#else
-#include <sys/socket.h>
-#endif
+#include <ws2tcpip.h>
 #include <iostream>
 #include <vector>
+#pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
 
@@ -35,22 +32,14 @@ void Protocol::sendMessage(int clientSocket, const string &message)
     // Send the 4-byte length prefix
     if (::send(clientSocket, reinterpret_cast<const char *>(&netMessageLength), sizeof(uint32_t), 0) == SOCKET_ERROR)
     {
-#ifdef _WIN32
         cerr << "Server: Failed to send message length. Error: " << WSAGetLastError() << endl;
-#else
-        cerr << "Server: Failed to send message length. Error: " << strerror(errno) << endl;
-#endif
         return;
     }
 
     // Send the actual message body
     if (::send(clientSocket, message.c_str(), messageLength, 0) == SOCKET_ERROR)
     {
-#ifdef _WIN32
         cerr << "Server: Failed to send message body. Error: " << WSAGetLastError() << endl;
-#else
-        cerr << "Server: Failed to send message body. Error: " << strerror(errno) << endl;
-#endif
         return;
     }
 }

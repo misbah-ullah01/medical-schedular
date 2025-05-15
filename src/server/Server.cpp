@@ -1,4 +1,4 @@
-// Implements Server class for handling clients and appointments
+// Implements Server class for handling clients and appointments (Windows only)
 #include <iostream>
 #include <string>
 #include <vector>
@@ -6,17 +6,8 @@
 #include <sstream>
 #include <cstdint>
 #include <fstream>
-#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstring>
-#endif
 #include <thread>
 #include <vector>
 #include <algorithm>
@@ -25,17 +16,14 @@
 #include "Protocol.h"
 #include "User.h"
 #include "Appointment.h"
+#pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
 
 // Helper to get last socket error as string
 string get_socket_error()
 {
-#ifdef _WIN32
     return to_string(WSAGetLastError());
-#else
-    return strerror(errno);
-#endif
 }
 
 mutex g_appointments_mutex;
@@ -47,7 +35,6 @@ Server::Server() : Server(12345) {}
 // Initialize server on given port
 Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 {
-#ifdef _WIN32
     WSADATA wsaData;
     int wsaResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (wsaResult != 0)
@@ -55,27 +42,17 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
         cerr << "WSAStartup failed: " << wsaResult << endl;
         exit(EXIT_FAILURE);
     }
-#endif
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-#ifdef _WIN32
     if (serverSocket == INVALID_SOCKET)
     {
         cerr << "Socket creation failed: " << get_socket_error() << endl;
         WSACleanup();
         exit(EXIT_FAILURE);
     }
-#else
-    if (serverSocket < 0)
-    {
-        cerr << "Socket creation failed: " << get_socket_error() << endl;
-        exit(EXIT_FAILURE);
-    }
-#endif
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(port);
-#ifdef _WIN32
     if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
     {
         cerr << "Bind failed: " << get_socket_error() << endl;
@@ -83,15 +60,6 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
         WSACleanup();
         exit(EXIT_FAILURE);
     }
-#else
-    if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
-    {
-        cerr << "Bind failed: " << get_socket_error() << endl;
-        close(serverSocket);
-        exit(EXIT_FAILURE);
-    }
-#endif
-#ifdef _WIN32
     if (listen(serverSocket, 3) == SOCKET_ERROR)
     {
         cerr << "Listen failed: " << get_socket_error() << endl;
@@ -99,14 +67,6 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
         WSACleanup();
         exit(EXIT_FAILURE);
     }
-#else
-    if (listen(serverSocket, 3) < 0)
-    {
-        cerr << "Listen failed: " << get_socket_error() << endl;
-        close(serverSocket);
-        exit(EXIT_FAILURE);
-    }
-#endif
     cout << "Server initialized on port " << port << endl;
     loadUsers();
 }
@@ -114,18 +74,11 @@ Server::Server(int port) : port(port), serverSocket(INVALID_SOCKET)
 // Cleanup
 Server::~Server()
 {
-#ifdef _WIN32
     if (serverSocket != INVALID_SOCKET)
     {
         closesocket(serverSocket);
     }
     WSACleanup();
-#else
-    if (serverSocket >= 0)
-    {
-        close(serverSocket);
-    }
-#endif
     cout << "Server shut down." << endl;
 }
 
@@ -144,25 +97,13 @@ void Server::start()
     while (true)
     {
         sockaddr_in clientAddr;
-#ifdef _WIN32
         int clientAddrLen = sizeof(clientAddr);
-#else
-        socklen_t clientAddrLen = sizeof(clientAddr);
-#endif
         int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &clientAddrLen);
-#ifdef _WIN32
         if (clientSocket == INVALID_SOCKET)
         {
             cerr << "[ERROR] Accept failed: " << get_socket_error() << endl;
             continue;
         }
-#else
-        if (clientSocket < 0)
-        {
-            cerr << "[ERROR] Accept failed: " << get_socket_error() << endl;
-            continue;
-        }
-#endif
         char clientIpStr[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &clientAddr.sin_addr, clientIpStr, INET_ADDRSTRLEN);
         cout << "[INFO] Client connected from " << clientIpStr << ":" << ntohs(clientAddr.sin_port) << endl;
@@ -332,11 +273,7 @@ void Server::processClient(int clientSocket)
             sendResponse(clientSocket, Protocol::ERROR_MESSAGE + "|Unknown command");
         }
     }
-#ifdef _WIN32
     closesocket(clientSocket);
-#else
-    close(clientSocket);
-#endif
     cout << "[INFO] Client socket closed." << endl;
 }
 

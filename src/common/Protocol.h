@@ -2,6 +2,9 @@
 #define PROTOCOL_H
 
 #include <string>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 using namespace std;
 
 // Enum for different message types in the protocol
@@ -23,7 +26,7 @@ struct Message
     string payload;
 };
 
-// Handles protocol constants and message formatting/parsing
+// Handles protocol constants and message formatting/parsing (Windows only)
 class Protocol
 {
 public:
@@ -38,13 +41,9 @@ public:
     static const string GET_APPROVED_APPOINTMENTS;
     static const string ERROR_MESSAGE;
     static const string SUCCESS_MESSAGE;
-    // Send a message to a socket
     void sendMessage(int socket, const string &message);
-    // Receive a message from a socket
     string receiveMessage(int socket);
-    // Format a user message
     string createUserMessage(const string &username, const string &password);
-    // Format an appointment message
     string createAppointmentMessage(const string &appointmentDetails);
 };
 

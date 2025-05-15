@@ -1,4 +1,4 @@
-// Implements TCP client for communicating with the server
+// Implements TCP client for communicating with the server (Windows only)
 #include "NetworkClient.h"
 #include "Protocol.h"
 #include <iostream>
@@ -6,11 +6,9 @@
 #include <sstream>
 #include <vector>
 #include <cstdint>
-#ifdef _WIN32
 #include <winsock2.h>
-#else
-#include <arpa/inet.h>
-#endif
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
 
@@ -20,11 +18,7 @@ const int DEFAULT_SERVER_PORT = 12345;
 // Helper to get last socket error as string
 string get_socket_error_client()
 {
-#ifdef _WIN32
     return to_string(WSAGetLastError());
-#else
-    return strerror(errno);
-#endif
 }
 
 // Initialize with server address and port
