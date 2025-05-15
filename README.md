@@ -3,6 +3,12 @@
 ## Purpose
 The Medical Scheduler System is a C++ client-server application designed to manage medical appointments in a hospital or clinic setting. It allows patients to securely sign up, sign in, and request appointments, while providing administrators with tools to approve or reject these appointments. The system supports multiple clients, secure communication, and a viewer for all appointment statuses.
 
+## Platform Support
+**This project is now Windows-only.**
+- All code, dependencies, and build instructions are specific to Windows.
+- Uses Winsock2 for networking and links against `ws2_32.lib`.
+- The code will not compile or run on Linux or macOS.
+
 ## How It Works
 - **Server (`server.exe`)**: Listens for client connections, manages user accounts and appointments, and provides an interactive admin menu for appointment management (list, approve, reject) directly from the server console.
 - **Client (`client.exe`)**: Used by patients to sign up, sign in, and request appointments. Communicates with the server over TCP sockets.
