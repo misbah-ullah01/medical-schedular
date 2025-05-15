@@ -7,7 +7,6 @@ using namespace std;
 class VigenereCipher
 {
 public:
-    // Constructor to initialize the key
     VigenereCipher();
     VigenereCipher(const string &key);
     string encrypt(const string &plaintext);

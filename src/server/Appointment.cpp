@@ -1,24 +1,20 @@
-// filepath: d:\GIKI (CS)\Semester 2\CS112\Semester Project\Project 1\medical-scheduler\src\server\Appointment.cpp
+// Implements Appointment, timezone, and AppointmentStatus methods
 #include "Appointment.h"
-#include <cstdio> // For sscanf. Consider <sstream> for more robust parsing.
-#include <string> // Required for string
+#include <cstdio>
+#include <string>
 
 using namespace std;
 
-// Constructor: Appointment(const string& patName, const string& docName, const timezone& appTime, const string& appID)
+// Create appointment with patient, doctor, time, and ID
 Appointment::Appointment(const string &patName, const string &docName, const timezone &appTime, const string &appID)
     : id(appID), patientName(patName), doctorName(docName), appointmentTime(appTime), status(), details("")
 {
-    // status() will call AppointmentStatus default constructor ("pending")
 }
 
-// Constructor: Appointment(const string& appointmentId, const string& patientName, const string& doctorName, const string& dateTimeString, const string& appDetails)
+// Create appointment from string date/time and details
 Appointment::Appointment(const string &appointmentId, const string &patName, const string &docName, const string &dateTimeString, const string &appDetails)
     : id(appointmentId), patientName(patName), doctorName(docName), details(appDetails), status()
-{ // status() will call AppointmentStatus default constructor
-    // Parse dateTimeString "YYYY-MM-DD HH:MM" into timezone struct
-    // Basic parsing with sscanf. Error checking should be added for production code.
-    // Ensure appointmentTime.second is handled (e.g., defaulted to 0 by timezone constructor if not parsed)
+{
     sscanf(dateTimeString.c_str(), "%d-%d-%d %d:%d",
            &appointmentTime.year, &appointmentTime.month, &appointmentTime.day,
            &appointmentTime.hour, &appointmentTime.minute);
@@ -28,7 +24,6 @@ Appointment::Appointment(const string &appointmentId, const string &patName, con
 Appointment::Appointment()
     : id(""), patientName(""), doctorName(""), appointmentTime(), status(), details("")
 {
-    // Default constructors for timezone and AppointmentStatus will be called.
 }
 
 // Copy constructor
@@ -86,7 +81,7 @@ string Appointment::getDetails() const
     return details;
 }
 
-// Setters
+// Set appointment status
 void Appointment::setStatus(const AppointmentStatus &newStatus)
 {
     status = newStatus;

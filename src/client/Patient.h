@@ -8,7 +8,7 @@ using namespace std;
 class Patient
 {
 public:
-    Patient(NetworkClient *client = nullptr); // Modified constructor
+    Patient(NetworkClient *client = nullptr);
     ~Patient();
 
     bool signUp();
@@ -24,8 +24,7 @@ private:
     string username;
     string password;
     NetworkClient *networkClient;
-    bool ownsNetworkClient; // To track if we need to delete the client
-
+    bool ownsNetworkClient;
     string encryptPassword(const string &password);
 };
 

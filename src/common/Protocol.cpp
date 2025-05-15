@@ -1,3 +1,4 @@
+// Implements protocol message formatting and socket communication
 #include "Protocol.h"
 #include <cstring>
 #include <sstream>
@@ -12,6 +13,7 @@
 
 using namespace std;
 
+// Protocol command constants
 const string Protocol::SIGN_UP = "SIGN_UP";
 const string Protocol::SIGN_IN = "SIGN_IN";
 const string Protocol::REQUEST_APPOINTMENT = "REQUEST_APPOINTMENT";
@@ -24,24 +26,7 @@ const string Protocol::GET_APPROVED_APPOINTMENTS = "GET_APPROVED_APPOINTMENTS";
 const string Protocol::ERROR_MESSAGE = "ERROR";
 const string Protocol::SUCCESS_MESSAGE = "SUCCESS";
 
-// Remove the problematic Protocol::send method entirely
-// void Protocol::send(int socket, const char *message, int length, int flags)
-// {
-//    // First send message length
-//    if (::send(socket, reinterpret_cast<const char *>(&length), sizeof(int), flags) == -1)
-//    {
-//        cerr << "Failed to send message length" << endl;
-//        return;
-//    }
-//
-//    // Then send the message
-//    if (::send(socket, message, length, flags) == -1)
-//    {
-//        cerr << "Failed to send message" << endl;
-//        return;
-//    }
-// }
-
+// Send a message with length prefix
 void Protocol::sendMessage(int clientSocket, const string &message)
 {
     uint32_t messageLength = static_cast<uint32_t>(message.length());
@@ -68,10 +53,9 @@ void Protocol::sendMessage(int clientSocket, const string &message)
 #endif
         return;
     }
-    // Optional: Log what was sent, but be mindful of log spam for large messages
-    // cout << "[DEBUG Server] Sent length: " << messageLength << ", Sent message: " << message.substr(0, 100) << endl;
 }
 
+// Receive a message with length prefix
 string Protocol::receiveMessage(int socket)
 {
     // First receive message length
@@ -95,6 +79,7 @@ string Protocol::receiveMessage(int socket)
     return string(buffer.data());
 }
 
+// Format a user message
 string Protocol::createUserMessage(const string &username, const string &password)
 {
     stringstream ss;
@@ -102,6 +87,7 @@ string Protocol::createUserMessage(const string &username, const string &passwor
     return ss.str();
 }
 
+// Format an appointment message
 string Protocol::createAppointmentMessage(const string &appointmentDetails)
 {
     return "APPOINTMENT|" + appointmentDetails;

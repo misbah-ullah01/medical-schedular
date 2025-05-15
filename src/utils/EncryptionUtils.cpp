@@ -1,9 +1,11 @@
+// Implements Vigenère cipher encryption/decryption
 #include "EncryptionUtils.h"
 #include <string>
 #include <vector>
 
 using namespace std;
 
+// Encrypts text using Vigenère cipher
 string encrypt(const string &text, const string &key)
 {
     string result;
@@ -16,6 +18,7 @@ string encrypt(const string &text, const string &key)
     return result;
 }
 
+// Decrypts text using Vigenère cipher
 string decrypt(const string &encryptedText, const string &key)
 {
     string result;

@@ -4,20 +4,22 @@
 #include <string>
 using namespace std;
 
+// Represents a user (patient or admin)
 class User
 {
 public:
-    User() : username(""), password("") {} // Added default constructor
+    User() : username(""), password("") {}
     User(const string &username, const string &password);
-
+    // Get username
     string getUsername() const;
+    // Get password (should be hashed in production)
     string getPassword() const;
-
+    // Set password
     void setPassword(const string &password);
 
 private:
     string username;
-    string password; // This should be stored securely (e.g., hashed) in a real application
+    string password;
 };
 
 #endif // USER_H

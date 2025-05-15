@@ -8,16 +8,19 @@
 
 using namespace std;
 
+// Handles admin actions for appointments
 class Admin
 {
 private:
-    vector<Appointment> appointments;
+    vector<Appointment> appointments; // List of appointments managed by the admin
 
 public:
     Admin();
+    // Approve an appointment
     void approveAppointment(Appointment &appointment);
+    // Reject an appointment
     void rejectAppointment(Appointment &appointment);
+    // View all pending appointments
     vector<Appointment> viewPendingAppointments(const vector<Appointment> &appointments);
-    // Removed rejectAppointment(const string&) and viewAppointments declarations
 };
 #endif // ADMIN_H

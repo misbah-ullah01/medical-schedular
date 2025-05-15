@@ -43,7 +43,6 @@ bool Patient::signUp()
         return false;
     }
 
-    // Use a simple key for the Vigenere cipher
     const string key = "MEDICALSCHEDULER";
     return signUp(username, password, key);
 }
@@ -68,7 +67,6 @@ bool Patient::signIn()
         return false;
     }
 
-    // Use the same key as in signUp
     const string key = "MEDICALSCHEDULER";
     return signIn(username, password, key);
 }
@@ -130,7 +128,6 @@ void Patient::requestAppointment(const string &appointmentDetails)
         return;
     }
 
-    // Format: patientId|doctorId|dateTime|details
     string appointmentRequest = username + "|" + doctorId + "|" + dateTime + "|" + details;
     if (networkClient->sendAppointmentRequest(appointmentRequest))
     {

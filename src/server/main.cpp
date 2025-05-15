@@ -1,3 +1,4 @@
+// Entry point for the Medical Scheduler Server
 #include <iostream>
 #include <string>
 #include <thread>
@@ -11,9 +12,9 @@
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 #endif
-
 using namespace std;
 
+// Get the local IP address for display
 string getLocalIPAddress()
 {
     string ipAddress = "unknown";
@@ -54,6 +55,7 @@ string getLocalIPAddress()
     return ipAddress;
 }
 
+// Start the server in a background thread
 void startServer(Server &server)
 {
     server.start();
@@ -61,6 +63,7 @@ void startServer(Server &server)
 
 int main()
 {
+    // Display server info and start server
     string localIP = getLocalIPAddress();
     cout << "Starting Medical Scheduler Server..." << endl;
     cout << "Server IP Address: " << localIP << endl;
@@ -68,10 +71,9 @@ int main()
     cout << "\nShare this IP address with clients to connect." << endl;
 
     Server server;
-    // Start the server in a background thread
     thread serverThread(startServer, ref(server));
 
-    // Admin CLI loop
+    // Admin CLI loop for appointment management
     while (true)
     {
         cout << "\n--- Admin Menu ---" << endl;
@@ -96,17 +98,19 @@ int main()
         }
         else if (choice == 2)
         {
+            // Approve appointment by ID
             cout << "Enter appointment ID to approve: ";
             string id;
             getline(cin, id);
-            server.approveAppointment(-1, id); // -1 means no client socket, just update status
+            server.approveAppointment(-1, id);
         }
         else if (choice == 3)
         {
+            // Reject appointment by ID
             cout << "Enter appointment ID to reject: ";
             string id;
             getline(cin, id);
-            server.rejectAppointment(-1, id); // -1 means no client socket, just update status
+            server.rejectAppointment(-1, id);
         }
         else if (choice == 4)
         {

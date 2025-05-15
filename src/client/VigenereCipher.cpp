@@ -18,7 +18,7 @@ string VigenereCipher::encrypt(const string &plaintext, const string &key)
         }
         else
         {
-            ciphertext += c; // Non-alphabetic characters are added unchanged
+            ciphertext += c;
         }
     }
     return ciphertext;
@@ -38,7 +38,7 @@ string VigenereCipher::decrypt(const string &ciphertext, const string &key)
         }
         else
         {
-            plaintext += c; // Non-alphabetic characters are added unchanged
+            plaintext += c;
         }
     }
     return plaintext;

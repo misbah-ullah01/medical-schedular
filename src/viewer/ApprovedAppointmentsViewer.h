@@ -2,13 +2,13 @@
 #ifndef APPROVED_APPOINTMENTS_VIEWER_H
 #define APPROVED_APPOINTMENTS_VIEWER_H
 
-#include "NetworkClient.h" // Assuming NetworkClient.h is accessible via include paths
+#include "NetworkClient.h"
 #include <string>
 #include <vector>
 
 using namespace std;
 
-// Struct to hold parsed appointment information
+// Holds parsed appointment information for display
 struct ApprovedAppointmentInfo
 {
     string id;
@@ -18,14 +18,18 @@ struct ApprovedAppointmentInfo
     string details;
 };
 
+// Viewer class to fetch and display all appointments from the server
 class ApprovedAppointmentsViewer
 {
 public:
+    // Initialize with server IP and port
     ApprovedAppointmentsViewer(const string &serverIp, int port);
+    // Fetch and display all appointments
     void fetchAndDisplayAppointments();
 
 private:
     NetworkClient networkClient;
+    // Parse server data into appointment info structs
     vector<ApprovedAppointmentInfo> parseApprovedAppointments(const string &data);
 };
 

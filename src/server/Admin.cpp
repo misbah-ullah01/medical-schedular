@@ -1,3 +1,4 @@
+// Implements Admin class methods
 #include "Admin.h"
 #include "Appointment.h"
 #include <iostream>
@@ -7,6 +8,7 @@ using namespace std;
 
 Admin::Admin() {}
 
+// Approve an appointment
 void Admin::approveAppointment(Appointment &appointment)
 {
     AppointmentStatus newStatus("approved");
@@ -14,6 +16,7 @@ void Admin::approveAppointment(Appointment &appointment)
     cout << "Appointment approved: " << appointment.getStatus().getStatus() << endl;
 }
 
+// Reject an appointment
 void Admin::rejectAppointment(Appointment &appointment)
 {
     AppointmentStatus newStatus("rejected");
@@ -21,11 +24,11 @@ void Admin::rejectAppointment(Appointment &appointment)
     cout << "Appointment rejected: " << appointment.getStatus().getStatus() << endl;
 }
 
+// Return all pending appointments
 vector<Appointment> Admin::viewPendingAppointments(const vector<Appointment> &appointments)
 {
     vector<Appointment> pendingAppointments;
     AppointmentStatus pending("pending");
-
     for (const auto &appointment : appointments)
     {
         if (appointment.getStatus() == pending)

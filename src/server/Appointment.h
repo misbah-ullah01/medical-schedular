@@ -7,10 +7,9 @@
 
 using namespace std;
 
+// Represents a date and time for an appointment
 struct timezone
 {
-public:
-    // Date and time components
     int year, month, day, hour, minute;
     timezone(int y, int m, int d, int h, int min, int s = 0) : year(y), month(m), day(d), hour(h), minute(min) {}
     timezone() : year(0), month(0), day(0), hour(0), minute(0) {}
@@ -48,22 +47,22 @@ public:
             return hour < other.hour;
         if (minute != other.minute)
             return minute < other.minute;
-        return false; // Ensure all paths return a value
+        return false;
     }
     bool operator>(const timezone &other) const
     {
         return other < *this;
     }
-
-    // New toString method
+    // Convert to string for display
     string toString() const
     {
-        char buffer[20]; // "YYYY-MM-DD HH:MM"
+        char buffer[20];
         snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d", year, month, day, hour, minute);
         return string(buffer);
     }
 };
 
+// Represents the status of an appointment
 struct AppointmentStatus
 {
 private:
@@ -73,7 +72,6 @@ public:
     AppointmentStatus(const string &s) : status(s) {}
     AppointmentStatus() : status("pending") {}
     AppointmentStatus(const AppointmentStatus &other) : status(other.status) {}
-
     AppointmentStatus &operator=(const AppointmentStatus &other)
     {
         if (this != &other)
@@ -82,33 +80,26 @@ public:
         }
         return *this;
     }
-
     bool operator==(const AppointmentStatus &other) const
     {
         return status == other.status;
     }
-
     string getStatus() const
     {
         return status;
     }
-
     void setStatus(const string &newStatus)
     {
         status = newStatus;
     }
-
     void approve()
     {
         status = "approved";
     }
-
     void reject()
     {
         status = "rejected";
     }
-
-    // Add stream operator as a friend function
     friend ostream &operator<<(ostream &os, const AppointmentStatus &status)
     {
         os << status.getStatus();
@@ -116,42 +107,33 @@ public:
     }
 };
 
+// Represents a medical appointment
 class Appointment
 {
 protected:
-    string id; // Changed from int to string
+    string id;
     string patientName;
     string doctorName;
     timezone appointmentTime;
-    AppointmentStatus status; // Default constructor of AppointmentStatus sets to "pending"
-    string details;           // Added details member
+    AppointmentStatus status;
+    string details;
 
 public:
-    // Existing constructor - signature updated for id type
     Appointment(const string &patName, const string &docName, const timezone &appTime, const string &appID);
-
-    // New constructor for server usage (dateTimeString to be parsed)
     Appointment(const string &appointmentId, const string &patientName, const string &doctorName, const string &dateTimeString, const string &appDetails);
-
-    // Default constructor (optional, but can be useful)
     Appointment();
-
-    // Copy constructor - ensure all members are copied
     Appointment(const Appointment &other);
-    // Assignment operator - ensure all members are assigned
     Appointment &operator=(const Appointment &other);
-
-    // Getters - id return type updated, new getter for details
+    // Getters
     string getid() const;
     string getPatientName() const;
     string getDoctorName() const;
-    timezone getAppointmentTime() const; // Added getter
-    AppointmentStatus getStatus() const; // Added getter
+    timezone getAppointmentTime() const;
+    AppointmentStatus getStatus() const;
     string getDetails() const;
-    string getId() const { return id; } // Added getter
-
-    // Setters (optional, add as needed)
-    void setStatus(const AppointmentStatus &newStatus); // Example setter
+    string getId() const { return id; }
+    // Setters
+    void setStatus(const AppointmentStatus &newStatus);
 };
 
 #endif // APPOINTMENT_H

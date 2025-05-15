@@ -10,20 +10,21 @@
 
 using namespace std;
 
+// Handles TCP communication with the server for client operations
 class NetworkClient
 {
 public:
-    NetworkClient();
-    NetworkClient(const string &serverAddress, int serverPort);
-    ~NetworkClient();
+    NetworkClient();                                            // Default constructor
+    NetworkClient(const string &serverAddress, int serverPort); // Initialize with server address/port
+    ~NetworkClient();                                           // Cleanup
 
-    bool connectToServer();
-    void disconnect();
-    bool sendRequest(const string &request);
-    bool sendSignUpRequest(const string &username, const string &encryptedPassword);
-    bool sendSignInRequest(const string &username, const string &encrpytedPassword);
-    bool sendAppointmentRequest(const string &appointmentDetails);
-    string receiveResponse();
+    bool connectToServer();                                                          // Connect to server
+    void disconnect();                                                               // Disconnect from server
+    bool sendRequest(const string &request);                                         // Send a generic request
+    bool sendSignUpRequest(const string &username, const string &encryptedPassword); // Send sign-up
+    bool sendSignInRequest(const string &username, const string &encrpytedPassword); // Send sign-in
+    bool sendAppointmentRequest(const string &appointmentDetails);                   // Send appointment request
+    string receiveResponse();                                                        // Receive response from server
 
 private:
     string serverAddress;
